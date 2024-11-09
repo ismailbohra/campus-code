@@ -1,0 +1,237 @@
+openapi: 3.0.0
+info:
+  title: Aeonaxy Intern Assignment
+  description: Change Server Url As Per the Port eg. Live server https://internship-assignment-51rx.onrender.com/docs/ and Local Server http://localhost:3000
+  version: 1.0.0
+servers:
+  - url: "{url}"
+    description: The Primary Server
+    variables:
+      url:
+        default: http://localhost:3000
+paths:
+  /user/getUserById/{userId}:
+    get:
+      tags: 
+        - User
+      summary: Get user by ID
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /user/getAllUser:
+    get:
+      tags: 
+        - Admin
+      summary: Get all users
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+  /user/login:
+    post:
+      tags: 
+        - User
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginCredentials'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT token for authentication
+  /user/forgotpassword:
+    post:
+      tags: 
+        - User
+      summary: Forgot password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPsd'
+      responses:
+        '200':
+          description: Passwrod Sent to your email
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: Confirmation
+  /user/changepassword:
+    post:
+      tags: 
+        - User
+      summary: Change password
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePsd'
+      responses:
+        '200':
+          description: Password Changed Successfully
+  /user:
+    post:
+      tags: 
+        - User
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUser'
+      responses:
+        '200':
+          description: User registered successfully
+    put:
+      tags: 
+        - User
+      summary: Update user information
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: User information updated successfully
+  /user/upload:
+    post:
+      tags:
+        - User
+      summary: Upload profile picture for a user
+      description: Uploads a profile picture for a user identified by their user ID.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profile:
+                  type: string
+                  format: binary
+                  description: Profile picture file to upload.
+      responses:
+        '200':
+          description: Profile picture uploaded successfully
+        '400':
+          description: Invalid request body or missing parameters
+        '401':
+          description: Unauthorized - JWT token is missing or invalid
+        '403':
+          description: Forbidden - User does not have permission to upload profile picture
+        '500':
+          description: Internal server error - Failed to upload profile picture
+  /user/profile:
+    get:
+      tags:
+        - User
+      summary: Get profile picture based on the id from jwt token
+      security:
+        - ApiKeyAuth: []
+      description: |
+        Retrieves the profile picture of a user based on the id from jwt token.
+      responses:
+        '200':
+          description: Profile picture retrieved successfully
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Profile picture not found
+        '500':
+          description: Failed to retrieve profile picture
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        userId:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        profile_picture:
+          type: string
+    RegisterUser:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    LoginCredentials:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    ForgotPsd:
+      type: object
+      properties:
+        email:
+          type: string
+    ChangePsd:
+      type: object
+      properties:
+        oldpassword:
+          type: string
+        newpassword:
+          type: string
+  securitySchemes:
+    ApiKeyAuth: 
+      type: apiKey
+      in: header 
+      name: Authorization
